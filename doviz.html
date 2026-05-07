@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0a0f">
+<title>Döviz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --border: #1e1e2e;
+    --accent-tl: #ff6b35;
+    --accent-usd: #4ade80;
+    --accent-baht: #38bdf8;
+    --accent-peso: #f472b6;
+    --text: #f0f0f0;
+    --muted: #555566;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 48px;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: -200px;
+    left: -200px;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(255,107,53,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    bottom: -200px;
+    right: -200px;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(56,189,248,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  header {
+    width: 100%;
+    max-width: 480px;
+    margin-bottom: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .logo {
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+  }
+
+  h1 {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -1px;
+  }
+
+  .rate-bar {
+    width: 100%;
+    max-width: 480px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .rate-bar-label {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .rate-bar-time {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+  }
+
+  .live-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent-usd);
+    animation: pulse 2s infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+  }
+
+  .cards {
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s, transform 0.1s;
+    cursor: text;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px;
+    height: 100%;
+    border-radius: 16px 0 0 16px;
+  }
+
+  .card.tl::before { background: var(--accent-tl); }
+  .card.usd::before { background: var(--accent-usd); }
+  .card.baht::before { background: var(--accent-baht); }
+  .card.peso::before { background: var(--accent-peso); }
+
+  .card:focus-within {
+    border-color: #333344;
+    transform: scale(1.01);
+  }
+
+  .card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .card-flag-name {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .flag {
+    font-size: 22px;
+    line-height: 1;
+  }
+
+  .currency-name {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .currency-code {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+
+  .currency-full {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+  }
+
+  .card.tl .currency-code { color: var(--accent-tl); }
+  .card.usd .currency-code { color: var(--accent-usd); }
+  .card.baht .currency-code { color: var(--accent-baht); }
+  .card.peso .currency-code { color: var(--accent-peso); }
+
+  .rate-vs-usd {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    text-align: right;
+  }
+
+  .input-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .symbol {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--muted);
+    flex-shrink: 0;
+    width: 24px;
+    text-align: center;
+  }
+
+  input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 28px;
+    font-weight: 700;
+    width: 100%;
+    letter-spacing: -1px;
+  }
+
+  input::placeholder { color: var(--muted); }
+
+  .cross-rates {
+    width: 100%;
+    max-width: 480px;
+    margin-top: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+  }
+
+  .cross-title {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .cross-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .cross-item {
+    background: var(--bg);
+    border-radius: 10px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+  }
+
+  .cross-pair {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    margin-bottom: 4px;
+  }
+
+  .cross-value {
+    font-size: 16px;
+    font-weight: 700;
+    font-family: 'Space Mono', monospace;
+    color: var(--text);
+  }
+
+  .error-msg {
+    width: 100%;
+    max-width: 480px;
+    text-align: center;
+    color: #ff6b6b;
+    font-size: 13px;
+    font-family: 'Space Mono', monospace;
+    margin-top: 12px;
+    display: none;
+  }
+
+  .footer {
+    margin-top: 32px;
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    text-align: center;
+    line-height: 1.8;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">LAS · Döviz Çevirici</div>
+  <h1>Para Birimi</h1>
+</header>
+
+<div class="rate-bar">
+  <div style="display:flex;align-items:center;gap:8px">
+    <div class="live-dot"></div>
+    <span class="rate-bar-label">Canlı Kur</span>
+  </div>
+  <span class="rate-bar-time" id="update-time">Yükleniyor...</span>
+</div>
+
+<div class="cards">
+  <div class="card tl">
+    <div class="card-top">
+      <div class="card-flag-name">
+        <span class="flag">🇹🇷</span>
+        <div class="currency-name">
+          <span class="currency-code">TRY</span>
+          <span class="currency-full">Türk Lirası</span>
+        </div>
+      </div>
+      <div class="rate-vs-usd" id="rate-tl">—</div>
+    </div>
+    <div class="input-row">
+      <span class="symbol">₺</span>
+      <input type="number" id="input-tl" placeholder="0" inputmode="decimal">
+    </div>
+  </div>
+
+  <div class="card usd">
+    <div class="card-top">
+      <div class="card-flag-name">
+        <span class="flag">🇺🇸</span>
+        <div class="currency-name">
+          <span class="currency-code">USD</span>
+          <span class="currency-full">Amerikan Doları</span>
+        </div>
+      </div>
+      <div class="rate-vs-usd" id="rate-usd">Baz Para</div>
+    </div>
+    <div class="input-row">
+      <span class="symbol">$</span>
+      <input type="number" id="input-usd" placeholder="0" inputmode="decimal">
+    </div>
+  </div>
+
+  <div class="card baht">
+    <div class="card-top">
+      <div class="card-flag-name">
+        <span class="flag">🇹🇭</span>
+        <div class="currency-name">
+          <span class="currency-code">THB</span>
+          <span class="currency-full">Tayland Bahtı</span>
+        </div>
+      </div>
+      <div class="rate-vs-usd" id="rate-thb">—</div>
+    </div>
+    <div class="input-row">
+      <span class="symbol">฿</span>
+      <input type="number" id="input-thb" placeholder="0" inputmode="decimal">
+    </div>
+  </div>
+
+  <div class="card peso">
+    <div class="card-top">
+      <div class="card-flag-name">
+        <span class="flag">🇵🇭</span>
+        <div class="currency-name">
+          <span class="currency-code">PHP</span>
+          <span class="currency-full">Filipin Pesosu</span>
+        </div>
+      </div>
+      <div class="rate-vs-usd" id="rate-php">—</div>
+    </div>
+    <div class="input-row">
+      <span class="symbol">₱</span>
+      <input type="number" id="input-php" placeholder="0" inputmode="decimal">
+    </div>
+  </div>
+</div>
+
+<div class="error-msg" id="error-msg">⚠ Kur verisi alınamadı. İnternet bağlantını kontrol et.</div>
+
+<div class="cross-rates">
+  <div class="cross-title">Çapraz Kurlar</div>
+  <div class="cross-grid">
+    <div class="cross-item">
+      <div class="cross-pair">1 USD =</div>
+      <div class="cross-value" id="cx-usd-tl">— ₺</div>
+    </div>
+    <div class="cross-item">
+      <div class="cross-pair">1 USD =</div>
+      <div class="cross-value" id="cx-usd-thb">— ฿</div>
+    </div>
+    <div class="cross-item">
+      <div class="cross-pair">1 USD =</div>
+      <div class="cross-value" id="cx-usd-php">— ₱</div>
+    </div>
+    <div class="cross-item">
+      <div class="cross-pair">1 THB =</div>
+      <div class="cross-value" id="cx-thb-php">— ₱</div>
+    </div>
+    <div class="cross-item">
+      <div class="cross-pair">100 ₺ =</div>
+      <div class="cross-value" id="cx-tl-thb">— ฿</div>
+    </div>
+    <div class="cross-item">
+      <div class="cross-pair">100 ₺ =</div>
+      <div class="cross-value" id="cx-tl-php">— ₱</div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  Veriler: exchangerate-api.com · Otomatik güncelleme<br>
+  Telefona kaydet → Ana Ekrana Ekle → Uygulama gibi kullan
+</div>
+
+<script>
+  let rates = {};
+  let activeInput = null;
+
+  const inputs = {
+    tl: document.getElementById('input-tl'),
+    usd: document.getElementById('input-usd'),
+    thb: document.getElementById('input-thb'),
+    php: document.getElementById('input-php'),
+  };
+
+  async function fetchRates() {
+    try {
+      const res = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+      const data = await res.json();
+      rates = {
+        TRY: data.rates.TRY,
+        THB: data.rates.THB,
+        PHP: data.rates.PHP,
+        USD: 1,
+      };
+      updateRateDisplay();
+      updateCrossRates();
+      document.getElementById('update-time').textContent = 'Güncellendi: ' + new Date().toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'});
+      document.getElementById('error-msg').style.display = 'none';
+    } catch(e) {
+      document.getElementById('error-msg').style.display = 'block';
+      document.getElementById('update-time').textContent = 'Bağlantı hatası';
+    }
+  }
+
+  function updateRateDisplay() {
+    document.getElementById('rate-tl').textContent = `1$ = ${rates.TRY?.toFixed(2)}₺`;
+    document.getElementById('rate-thb').textContent = `1$ = ${rates.THB?.toFixed(2)}฿`;
+    document.getElementById('rate-php').textContent = `1$ = ${rates.PHP?.toFixed(2)}₱`;
+  }
+
+  function updateCrossRates() {
+    const r = rates;
+    document.getElementById('cx-usd-tl').textContent = r.TRY?.toFixed(2) + ' ₺';
+    document.getElementById('cx-usd-thb').textContent = r.THB?.toFixed(2) + ' ฿';
+    document.getElementById('cx-usd-php').textContent = r.PHP?.toFixed(2) + ' ₱';
+    document.getElementById('cx-thb-php').textContent = (r.PHP / r.THB)?.toFixed(4) + ' ₱';
+    document.getElementById('cx-tl-thb').textContent = (100 / r.TRY * r.THB)?.toFixed(2) + ' ฿';
+    document.getElementById('cx-tl-php').textContent = (100 / r.TRY * r.PHP)?.toFixed(2) + ' ₱';
+  }
+
+  function toUSD(amount, currency) {
+    if (currency === 'usd') return amount;
+    if (currency === 'tl') return amount / rates.TRY;
+    if (currency === 'thb') return amount / rates.THB;
+    if (currency === 'php') return amount / rates.PHP;
+  }
+
+  function fromUSD(usd, currency) {
+    if (currency === 'usd') return usd;
+    if (currency === 'tl') return usd * rates.TRY;
+    if (currency === 'thb') return usd * rates.THB;
+    if (currency === 'php') return usd * rates.PHP;
+  }
+
+  function fmt(n) {
+    if (n === null || isNaN(n)) return '';
+    if (n === 0) return '';
+    return parseFloat(n.toFixed(4)).toString();
+  }
+
+  function convert(source) {
+    if (!rates.TRY) return;
+    const val = parseFloat(inputs[source].value);
+    if (isNaN(val) || inputs[source].value === '') {
+      Object.keys(inputs).forEach(k => { if (k !== source) inputs[k].value = ''; });
+      return;
+    }
+    const usd = toUSD(val, source);
+    Object.keys(inputs).forEach(k => {
+      if (k !== source) inputs[k].value = fmt(fromUSD(usd, k));
+    });
+  }
+
+  Object.keys(inputs).forEach(key => {
+    inputs[key].addEventListener('input', () => convert(key));
+    inputs[key].addEventListener('focus', () => activeInput = key);
+  });
+
+  fetchRates();
+  // Her 10 dakikada bir güncelle
+  setInterval(fetchRates, 600000);
+</script>
+</body>
+</html>
