@@ -76,6 +76,21 @@
     font-family: 'Space Mono', monospace;
   }
 
+  .change-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 11px;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 20px;
+    margin-left: 6px;
+  }
+  .change-badge.up { background: rgba(74,222,128,0.12); color: #4ade80; }
+  .change-badge.down { background: rgba(255,107,107,0.12); color: #ff6b6b; }
+  .change-badge.flat { background: rgba(85,85,102,0.2); color: var(--muted); }
+
   h1 {
     font-size: 28px;
     font-weight: 800;
@@ -308,7 +323,7 @@
 <body>
 
 <header>
-  <div class="logo">LAS · Döviz Çevirici</div>
+  <div class="logo">Döviz Çevirici</div>
   <h1>Para Birimi</h1>
 </header>
 
@@ -330,7 +345,7 @@
           <span class="currency-full">Türk Lirası</span>
         </div>
       </div>
-      <div class="rate-vs-usd" id="rate-tl">—</div>
+      <div class="rate-vs-usd" id="rate-tl"><span id="rate-tl-val">—</span><span id="change-tl" class="change-badge flat"></span></div>
     </div>
     <div class="input-row">
       <span class="symbol">₺</span>
@@ -364,7 +379,7 @@
           <span class="currency-full">Tayland Bahtı</span>
         </div>
       </div>
-      <div class="rate-vs-usd" id="rate-thb">—</div>
+      <div class="rate-vs-usd" id="rate-thb"><span id="rate-thb-val">—</span><span id="change-thb" class="change-badge flat"></span></div>
     </div>
     <div class="input-row">
       <span class="symbol">฿</span>
@@ -381,7 +396,7 @@
           <span class="currency-full">Filipin Pesosu</span>
         </div>
       </div>
-      <div class="rate-vs-usd" id="rate-php">—</div>
+      <div class="rate-vs-usd" id="rate-php"><span id="rate-php-val">—</span><span id="change-php" class="change-badge flat"></span></div>
     </div>
     <div class="input-row">
       <span class="symbol">₱</span>
@@ -429,6 +444,7 @@
 
 <script>
   let rates = {};
+  let prevRates = {};
   let activeInput = null;
 
   const inputs = {
@@ -448,6 +464,19 @@
         PHP: data.rates.PHP,
         USD: 1,
       };
+
+      // Dünkü kur için ayrı çağrı
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const y = yesterday.getFullYear();
+      const m = String(yesterday.getMonth()+1).padStart(2,'0');
+      const d = String(yesterday.getDate()).padStart(2,'0');
+      try {
+        const res2 = await fetch(`https://api.exchangerate-api.com/v4/${y}-${m}-${d}/USD`);
+        const data2 = await res2.json();
+        prevRates = { TRY: data2.rates.TRY, THB: data2.rates.THB, PHP: data2.rates.PHP };
+      } catch(e) { prevRates = {}; }
+
       updateRateDisplay();
       updateCrossRates();
       document.getElementById('update-time').textContent = 'Güncellendi: ' + new Date().toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'});
@@ -458,10 +487,29 @@
     }
   }
 
+  function changeBadge(curr, prev) {
+    if (!prev) return { cls: 'flat', txt: '' };
+    const pct = ((curr - prev) / prev * 100);
+    if (Math.abs(pct) < 0.01) return { cls: 'flat', txt: '—' };
+    if (pct > 0) return { cls: 'up', txt: '▲ +' + pct.toFixed(2) + '%' };
+    return { cls: 'down', txt: '▼ ' + pct.toFixed(2) + '%' };
+  }
+
+  function setBadge(id, curr, prev) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const b = changeBadge(curr, prev);
+    el.className = 'change-badge ' + b.cls;
+    el.textContent = b.txt;
+  }
+
   function updateRateDisplay() {
-    document.getElementById('rate-tl').textContent = `1$ = ${rates.TRY?.toFixed(2)}₺`;
-    document.getElementById('rate-thb').textContent = `1$ = ${rates.THB?.toFixed(2)}฿`;
-    document.getElementById('rate-php').textContent = `1$ = ${rates.PHP?.toFixed(2)}₱`;
+    document.getElementById('rate-tl-val').textContent = `1$ = ${rates.TRY?.toFixed(2)}₺`;
+    document.getElementById('rate-thb-val').textContent = `1$ = ${rates.THB?.toFixed(2)}฿`;
+    document.getElementById('rate-php-val').textContent = `1$ = ${rates.PHP?.toFixed(2)}₱`;
+    setBadge('change-tl', rates.TRY, prevRates.TRY);
+    setBadge('change-thb', rates.THB, prevRates.THB);
+    setBadge('change-php', rates.PHP, prevRates.PHP);
   }
 
   function updateCrossRates() {
