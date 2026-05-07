@@ -362,7 +362,7 @@
           <span class="currency-full">Amerikan Doları</span>
         </div>
       </div>
-      <div class="rate-vs-usd" id="rate-usd">Baz Para</div>
+      <div class="rate-vs-usd" id="rate-usd"><span id="rate-usd-val">—</span><span id="change-usd" class="change-badge flat"></span></div>
     </div>
     <div class="input-row">
       <span class="symbol">$</span>
@@ -427,11 +427,11 @@
       <div class="cross-value" id="cx-thb-php">— ₱</div>
     </div>
     <div class="cross-item">
-      <div class="cross-pair">100 ₺ =</div>
+      <div class="cross-pair">1 ₺ =</div>
       <div class="cross-value" id="cx-tl-thb">— ฿</div>
     </div>
     <div class="cross-item">
-      <div class="cross-pair">100 ₺ =</div>
+      <div class="cross-pair">1 ₺ =</div>
       <div class="cross-value" id="cx-tl-php">— ₱</div>
     </div>
   </div>
@@ -504,22 +504,26 @@
   }
 
   function updateRateDisplay() {
-    document.getElementById('rate-tl-val').textContent = `1$ = ${rates.TRY?.toFixed(2)}₺`;
-    document.getElementById('rate-thb-val').textContent = `1$ = ${rates.THB?.toFixed(2)}฿`;
-    document.getElementById('rate-php-val').textContent = `1$ = ${rates.PHP?.toFixed(2)}₱`;
-    setBadge('change-tl', rates.TRY, prevRates.TRY);
-    setBadge('change-thb', rates.THB, prevRates.THB);
-    setBadge('change-php', rates.PHP, prevRates.PHP);
+    document.getElementById('rate-tl-val').textContent = `Baz Para`;
+    document.getElementById('rate-thb-val').textContent = `1₺ = ${(rates.THB/rates.TRY).toFixed(4)}฿`;
+    document.getElementById('rate-php-val').textContent = `1₺ = ${(rates.PHP/rates.TRY).toFixed(4)}₱`;
+    document.getElementById('rate-usd-val').textContent = `1₺ = ${(1/rates.TRY).toFixed(4)}$`;
+    setBadge('change-thb', rates.THB/rates.TRY, prevRates.THB && prevRates.TRY ? prevRates.THB/prevRates.TRY : null);
+    setBadge('change-php', rates.PHP/rates.TRY, prevRates.PHP && prevRates.TRY ? prevRates.PHP/prevRates.TRY : null);
+    setBadge('change-usd', 1/rates.TRY, prevRates.TRY ? 1/prevRates.TRY : null);
   }
 
   function updateCrossRates() {
     const r = rates;
+    const tl2usd = (1/r.TRY).toFixed(4);
+    const tl2thb = (r.THB/r.TRY).toFixed(4);
+    const tl2php = (r.PHP/r.TRY).toFixed(4);
     document.getElementById('cx-usd-tl').textContent = r.TRY?.toFixed(2) + ' ₺';
     document.getElementById('cx-usd-thb').textContent = r.THB?.toFixed(2) + ' ฿';
     document.getElementById('cx-usd-php').textContent = r.PHP?.toFixed(2) + ' ₱';
     document.getElementById('cx-thb-php').textContent = (r.PHP / r.THB)?.toFixed(4) + ' ₱';
-    document.getElementById('cx-tl-thb').textContent = (100 / r.TRY * r.THB)?.toFixed(2) + ' ฿';
-    document.getElementById('cx-tl-php').textContent = (100 / r.TRY * r.PHP)?.toFixed(2) + ' ₱';
+    document.getElementById('cx-tl-thb').textContent = tl2thb + ' ฿';
+    document.getElementById('cx-tl-php').textContent = tl2php + ' ₱';
   }
 
   function toUSD(amount, currency) {
